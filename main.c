@@ -17,12 +17,6 @@
 //sfmsensor
 #define sfm3300i2c 0x40
 
-//ADC
-//void print_adc_via_usbuart(void);
-//int16 adc_val_int16 = 0;
-//float32 adc_value = 0;
-//float flow = 0;
-
 // USBUART
 #define USBFS_DEVICE    (0u)
 #define USBUART_BUFFER_SIZE (256u)
@@ -63,19 +57,6 @@ int main(void)
     // I2C Init
     I2C_1_Start();
     
-    /* Start the ADC components */
-    //ADC_DelSig_1_Start();
-    
-    /* Start the ADC conversion */
-    //ADC_DelSig_1_StartConvert();
-    
-    //Initialize for flow sensor
-      //int ret = init(); //if return 0, then successful initialization
-      //while (ret != 0) {
-            //CyDelay(500);
-            //init();
-    //}
-    
     // PWM Block Init
     PWM_LED_Start();
    
@@ -91,20 +72,10 @@ int main(void)
     CySysTickStart();
     CySysTickSetCallback(0, sys_clock_ms_callback);
     CySysTickEnableInterrupt();
-    
-//    Wire.beginTransmission(sfm3300i2c);
-//    Wire.write(0x10); // start continuous measurement
-//    Wire.write(0x00); // command 0x1000
-//    Wire.endTransmission();
+  
     
     int a = 0;
     int b = 0;
-//    int i;
-//    int status;
-//    uint16_t register_addr = 0x1000;
-//    const uint8_t DATA_LEN = 3; //Sensor sends 9 bytes (pressure differential, CRC, temp, CRC, scale factor, CRC)
-//    uint8_t data[3] = { 0 };
-//    uint16_t count = 3;
 
     const uint8_t CMD_LEN = 2;
     uint8_t cmd[2] = { 0x10, 0x00 }; //continuous measurement)
@@ -120,15 +91,7 @@ int main(void)
         
         n = n+1; //for tracing sensor readouts
 //        
-        
-//        const uint8_t CMD_LEN = 2;
-//        uint8_t cmd[2] = { 0x10, 0x00 }; //continuous measurement)
-//
-//        if(i2c_write(sfm3300i2c, cmd, CMD_LEN, 0) != 0) {//write command
-//        a = 1;
-//        }
-//        
-        CyDelay(50); // theoretically 45ms /////////
+        CyDelay(50); 
         const uint8_t DATA_LEN = 3; //Sensor sends 9 bytes (pressure differential, CRC, temp, CRC, scale factor, CRC)
         uint8_t data[3] = { 0 };
         if(i2c_read(sfm3300i2c, data, DATA_LEN) != 0) {
@@ -136,64 +99,11 @@ int main(void)
         }
         
         
-//        const uint8_t DATA_LEN = 3; //Sensor sends 9 bytes (pressure differential, CRC, temp, CRC, scale factor, CRC)
-//        uint8_t data[3] = { 0 };
-//        if(i2c_write_SFM3xxx(sfm3300i2c, 0x1000, data, DATA_LEN) != 0) {
-//            a = 1;
-//            b = 1;
-//        }
-        
-//    status = I2C_1_MasterSendStart(sfm3300i2c, I2C_1_WRITE_XFER_MODE); //begin transmission in write-mode
-//    if(I2C_1_MSTR_NO_ERROR == status) /* Check if transfer completed without errors */
-//    {
-//        /* Send register-address to write */
-//        uint8_t reg_MSB = (register_addr >> 8) & 0xFF;
-//        uint8_t reg_LSB = register_addr & 0xFF;
-//        status = I2C_1_MasterWriteByte(reg_MSB);
-//        status |= I2C_1_MasterWriteByte(reg_LSB);
-//        USBUART_user_check_init();
-//        print_sensor_via_usbuart(n,5,1,1,1);
-//    }
-//    if(status == I2C_1_MSTR_NO_ERROR) //If there is no error
-//    {
-//        for (i = 1; i < 500; ++i)
-//        {
-//        USBUART_user_check_init();
-//        print_sensor_via_usbuart(1,2,3,4,5);
-//        status = I2C_1_MasterSendRestart(sfm3300i2c, I2C_1_READ_XFER_MODE); //continue transmission in read-mode
-//        /* Read array of count bytes */
-//        for(i=0; i<count; i++)
-//        {
-//            if(i < count-1)
-//            {
-//                data[i] = I2C_1_MasterReadByte(I2C_1_ACK_DATA); /* non-last byte send ACK */
-//            }
-//            else
-//            {
-//                data[i] = I2C_1_MasterReadByte(I2C_1_NAK_DATA); /* last byte send NACK */
-//            }
-//        }
-        
         uint8_t crc_check = SMF3000_CheckCrc(data, 2, data[2]);
         uint16_t flow_raw = (data[0] << 8) | data[1];
         float flow = ((float)flow_raw - 32768 / 120);
         USBUART_user_check_init();
         print_sensor_via_usbuart(n,flow,a,b,crc_check);
-//        }
-//    }
-//    I2C_1_MasterSendStop(); /* Send Stop */    
-        
-//        uint16_t flow_raw = (data[0] << 8) | data[1];
-//        float flow = ((float)flow_raw - 32768 / 120);
-          //VolFlow = k*sqrt(delta_p) + bias
-            //int ret = readSample(); //triggered measurement
-            //pressure = getDifferentialPressure();
-            //temp = getTemperature();
-            //while (!(ADC_DelSig_1_IsEndConversion(ADC_DelSig_1_RETURN_STATUS)));
-            //adc_value = ADC_DelSig_1_CountsTo_Volts(ADC_DelSig_1_GetResult32());
-            //flow = (adc_value-0.48)*25; //ADC at 0 flow settles at 0.45-0.48V, this equation was derived from plots in the datasheet
-//            USBUART_user_check_init();
-//            print_sensor_via_usbuart(n,flow,a,b,(float)data[2]);
             
             led_test++;
             
@@ -207,7 +117,6 @@ int main(void)
             }
               
             
-            //CyDelay(10);  
     }
 }
 
